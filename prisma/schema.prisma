@@ -26,4 +26,8 @@ model Transfer {
   logIndex         Int
   removed          Boolean
   createdAt        DateTime @default(now())
+
+  @@index([from], name: "from_idx")
+  @@index([to], name: "to_idx")
+  @@index([blockNumber], name: "blockNumber_idx")
 }
