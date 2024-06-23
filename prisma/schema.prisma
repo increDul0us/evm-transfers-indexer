@@ -30,4 +30,5 @@ model Transfer {
   @@index([from], name: "from_idx")
   @@index([to], name: "to_idx")
   @@index([blockNumber], name: "blockNumber_idx")
+  @@unique([transactionHash, logIndex])
 }

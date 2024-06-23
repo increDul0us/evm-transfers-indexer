@@ -6,13 +6,16 @@ import { Prisma, Transfer } from '@prisma/client';
 export class TransfersService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async save(data: Prisma.TransferCreateInput) {
-    return this.prismaService.transfer.create({
+  async save(data: Prisma.TransferCreateManyInput[]) {
+    return this.prismaService.transfer.createMany({
       data,
+      skipDuplicates: true,
     });
   }
 
-  async getTransferHistory(address: string): Promise<Transfer[]> {
+  async getTransferHistory(
+    address: string,
+  ): Promise<Pick<Transfer, 'from' | 'to' | 'value' | 'transactionHash'>[]> {
     return this.prismaService.transfer.findMany({
       where: {
         OR: [{ from: address }, { to: address }],
@@ -21,6 +24,7 @@ export class TransfersService {
       orderBy: {
         blockNumber: 'desc',
       },
+      select: { from: true, to: true, value: true, transactionHash: true },
     });
   }
 }

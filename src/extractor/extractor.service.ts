@@ -54,18 +54,7 @@ export class ExtractorService implements OnModuleInit {
         event: parseAbiItem(
           'event Transfer(address indexed, address indexed, uint256)',
         ),
-        onLogs: (logs) => {
-          logs.forEach((log) => {
-            const { blockNumber, args } = log;
-            const [from, to, value] = args;
-            this.logger.log(
-              `Processing Transfer from ${from} to ${to} of ${formatEther(
-                value,
-              )} tokens in block ${blockNumber}`,
-            );
-            this.handleTransferEvent(log);
-          });
-        },
+        onLogs: (logs) => this.handleTransferEvent(logs),
         onError: (error) => this.logger.error('Error in watchEvent', error),
       });
     } catch (error) {
@@ -100,17 +89,7 @@ export class ExtractorService implements OnModuleInit {
           toBlock,
         });
         const logs = await client.getFilterLogs({ filter });
-
-        for (const log of logs) {
-          const { blockNumber, args } = log;
-          const [from, to, value] = args as any;
-          this.logger.log(
-            `Processing Transfer from ${from} to ${to} of ${formatEther(
-              value,
-            )} tokens in block ${blockNumber}`,
-          );
-          await this.handleTransferEvent(log);
-        }
+        await this.handleTransferEvent(logs);
 
         this.logger.log(`Fetched logs from block ${fromBlock} to ${toBlock}`);
         fromBlock += batchSize;
@@ -123,20 +102,30 @@ export class ExtractorService implements OnModuleInit {
     }
   }
 
-  private async handleTransferEvent(log) {
-    const transfer = {
-      address: log.address,
-      blockNumber: Number(log.blockNumber),
-      blockHash: log.blockHash,
-      transactionHash: log.transactionHash,
-      transactionIndex: log.transactionIndex,
-      logIndex: log.logIndex,
-      removed: log.removed,
-      from: log.args[0],
-      to: log.args[1],
-      value: log.formatEther(log.args[2]),
-    };
+  private async handleTransferEvent(logs) {
+    const transfers = [];
+    for (const log of logs) {
+      const value = formatEther(log.args[2]);
+      if (Number(value) === 0) continue;
 
-    await this.transfersService.save(transfer);
+      const transfer = {
+        address: log.address,
+        blockNumber: Number(log.blockNumber),
+        blockHash: log.blockHash,
+        transactionHash: log.transactionHash,
+        transactionIndex: log.transactionIndex,
+        logIndex: log.logIndex,
+        removed: log.removed,
+        from: log.args[0],
+        to: log.args[1],
+        value: formatEther(log.args[2]),
+      };
+
+      transfers.push(transfer);
+    }
+
+    this.logger.log(`handleTransferEvent for ${transfers.length} transfers`);
+
+    await this.transfersService.save(transfers);
   }
 }
