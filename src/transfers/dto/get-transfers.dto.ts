@@ -10,6 +10,8 @@ export class GetTransferHistoryQueryDto {
   @ApiProperty({
     example: 1,
     description: 'Page number for pagination',
+    required: false,
+    type: 'number',
   })
   page: number = 1;
 
@@ -20,6 +22,8 @@ export class GetTransferHistoryQueryDto {
   @ApiProperty({
     example: 10,
     description: 'Number of records per page',
+    required: false,
+    type: 'number',
   })
   pageSize: number = 10;
 
@@ -28,6 +32,8 @@ export class GetTransferHistoryQueryDto {
   @ApiProperty({
     example: 'in',
     description: 'Direction of transfer: in or out',
+    required: false,
+    enum: ['in', 'out'],
   })
   direction?: 'in' | 'out';
 }

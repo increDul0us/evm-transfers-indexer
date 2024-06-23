@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - '3333:3333'
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://indexer:indexer@db:5432/indexer
+
+  db:
+    image: postgres:13.5
+    restart: always
+    environment:
+      POSTGRES_USER: indexer
+      POSTGRES_PASSWORD: indexer
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5444:5432'
+
+volumes:
+  postgres_data:

@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import {
   createPublicClient,
   http,
-  formatEther,
   Chain,
   parseAbiItem,
   defineChain,
@@ -105,8 +104,7 @@ export class ExtractorService implements OnModuleInit {
   private async handleTransferEvent(logs) {
     const transfers = [];
     for (const log of logs) {
-      const value = formatEther(log.args[2]);
-      if (Number(value) === 0) continue;
+      if (Number(log.args[2]) === 0) continue;
 
       const transfer = {
         address: log.address,
@@ -118,7 +116,7 @@ export class ExtractorService implements OnModuleInit {
         removed: log.removed,
         from: log.args[0],
         to: log.args[1],
-        value: formatEther(log.args[2]),
+        value: log.args[2].toString(),
       };
 
       transfers.push(transfer);

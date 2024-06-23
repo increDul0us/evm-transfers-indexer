@@ -27,13 +27,13 @@ export class TransfersController {
   })
   async getTransfersHistory(
     @Param('address') address: string,
-    @Query() query: GetTransferHistoryQueryDto,
+    @Query() { page = 1, pageSize = 10, direction }: GetTransferHistoryQueryDto,
   ) {
     return this.transfersService.getTransferHistory(
       address,
-      Number(query.page),
-      Number(query.pageSize),
-      query.direction,
+      Number(page),
+      Number(pageSize),
+      direction,
     );
   }
 }
