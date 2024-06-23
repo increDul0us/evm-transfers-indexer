@@ -74,7 +74,7 @@ export class ExtractorService implements OnModuleInit {
 
     const latestBlock = await client.getBlockNumber();
     let fromBlock = BigInt(0);
-    const batchSize = BigInt(1000);
+    const batchSize = BigInt(5000);
 
     while (fromBlock <= latestBlock) {
       const toBlock = fromBlock + batchSize - BigInt(1);
