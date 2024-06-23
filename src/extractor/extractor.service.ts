@@ -6,9 +6,11 @@ import {
   formatEther,
   Chain,
   parseAbiItem,
+  defineChain,
 } from 'viem';
-import { blast } from 'viem/chains';
+// import { blast } from 'viem/chains';
 import { sleep } from './util';
+import { TransfersService } from 'src/transfers/transfers.service';
 
 @Injectable()
 export class ExtractorService implements OnModuleInit {
@@ -16,9 +18,24 @@ export class ExtractorService implements OnModuleInit {
   private chain: Chain;
   private tokenAddress: `0x${string}`;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly transfersService: TransfersService,
+  ) {
     this.tokenAddress = this.configService.get('TOKEN_ADDRESS');
-    this.chain = blast;
+
+    this.chain = defineChain({
+      id: this.configService.get('CHAIN_ID'),
+      name: '',
+      nativeCurrency: {
+        decimals: 18,
+        name: '',
+        symbol: '',
+      },
+      rpcUrls: {
+        default: { http: [this.configService.get('RPC_URL')] },
+      },
+    });
   }
 
   async onModuleInit() {
@@ -46,6 +63,7 @@ export class ExtractorService implements OnModuleInit {
                 value,
               )} tokens in block ${blockNumber}`,
             );
+            this.handleTransferEvent(log);
           });
         },
         onError: (error) => this.logger.error('Error in watchEvent', error),
@@ -91,6 +109,7 @@ export class ExtractorService implements OnModuleInit {
               value,
             )} tokens in block ${blockNumber}`,
           );
+          await this.handleTransferEvent(log);
         }
 
         this.logger.log(`Fetched logs from block ${fromBlock} to ${toBlock}`);
@@ -102,5 +121,22 @@ export class ExtractorService implements OnModuleInit {
         await sleep(2000);
       }
     }
+  }
+
+  private async handleTransferEvent(log) {
+    const transfer = {
+      address: log.address,
+      blockNumber: Number(log.blockNumber),
+      blockHash: log.blockHash,
+      transactionHash: log.transactionHash,
+      transactionIndex: log.transactionIndex,
+      logIndex: log.logIndex,
+      removed: log.removed,
+      from: log.args[0],
+      to: log.args[1],
+      value: log.formatEther(log.args[2]),
+    };
+
+    await this.transfersService.save(transfer);
   }
 }

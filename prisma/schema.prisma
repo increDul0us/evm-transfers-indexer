@@ -12,3 +12,18 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Transfer {
+  id               Int      @id @default(autoincrement())
+  address          String
+  from             String
+  to               String
+  value            String
+  blockNumber      Int
+  blockHash        String
+  transactionHash  String
+  transactionIndex Int
+  logIndex         Int
+  removed          Boolean
+  createdAt        DateTime @default(now())
+}
